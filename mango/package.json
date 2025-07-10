@@ -1,5 +1,5 @@
 {
-  "name": "project_serve_app",
+  "name": "mango",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,8 @@
     "react-native": "0.79.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "react-native-rename": "^3.2.17"
   },
   "private": true
 }

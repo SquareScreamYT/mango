@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Project_serve_app",
-    "slug": "Project_serve_app",
+    "name": "mango",
+    "slug": "mango",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
