@@ -1,79 +1,96 @@
+// Screens/HomeScreen.js
 import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
-import { Text, Button, Card, IconButton, useTheme } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 
-export default function HomeScreen() {
-  const navigation = useNavigation();
-  const theme = useTheme(); 
+export default function HomeScreen({ navigation }) {
+  const activeBookings = 2;
+  const equipmentLoaned = 1;
+  const bookings = [
+    { title: 'Gym', time: '12:00 – 13:00', date: '2025-09-02' },
+    { title: 'Gym', time: '14:00 – 15:30', date: '2025-08-07' },
+  ];
+  const announcements = [
+    { title: 'Gym Maintenance - 19/7/25', time: '2 days ago' },
+    { title: 'New Equipment Available', time: '4 hours ago' },
+    { title: 'Change in Gym Hours', time: '1 day ago' },
+  ];
+
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.headerRow}>
-        <Text style={[styles.header, { color: theme.colors.text }]}>Hello, John Tan</Text>
-        <IconButton
-          icon="cog-outline"
-          size={28}
-          style={styles.settingsIcon}
-          onPress={() => navigation.navigate('Settings')}
-        />
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.greeting}>Hello, John Tan</Text>
+      <View style={styles.statsRow}>
+        <View style={styles.statsBox}>
+          <Text style={styles.statsNum}>{activeBookings}</Text>
+          <Text style={styles.statsLabel}>Active Bookings</Text>
+        </View>
+        <View style={styles.statsBox}>
+          <Text style={styles.statsNum}>{equipmentLoaned}</Text>
+          <Text style={styles.statsLabel}>Equipment Loaned</Text>
+        </View>
       </View>
-
-      <View style={styles.row}>
-        <Card style={[styles.statCard, { backgroundColor: '#2196F3' }]}>
-          <Card.Content>
-            <Text style={styles.statText}>2{"\n"}Active Bookings</Text>
-          </Card.Content>
-        </Card>
-        <Card style={[styles.statCard, { backgroundColor: '#2196F3' }]}>
-          <Card.Content>
-            <Text style={styles.statText}>1{"\n"}Equipment Loaned</Text>
-          </Card.Content>
-        </Card>
+      <View style={styles.actionRow}>
+        <TouchableOpacity 
+          style={[styles.actionBtn, {backgroundColor: '#388CFB'}]} 
+          onPress={() => navigation.navigate('Booking')}
+        >
+          <Text style={styles.actionText}>Book Gym</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.actionBtn, {backgroundColor: '#b3d1fc'}]} 
+          onPress={() => navigation.navigate('Loan')}
+        >
+          <Text style={styles.actionTextAlt}>Loan Equipment</Text>
+        </TouchableOpacity>
       </View>
-
-      <View style={styles.row}>
-        <Button mode="contained" style={styles.actionButton}>Book Gym</Button>
-        <Button mode="contained" style={styles.actionButton}>Loan Equipment</Button>
-      </View>
-
-      <Card style={styles.section}>
-        <Card.Title title="Current Bookings" />
-        <Card.Content>
-          <View style={styles.bookingItem}>
-            <Text style={{ color: theme.colors.text }}>Gym{"\n"}12.00am - 1.00pm</Text>
-            <Text style={{ color: theme.colors.text }}>9/2/25</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Current Bookings</Text>
+        {bookings.map((b,i) => (
+          <View key={i} style={styles.bookingCard}>
+            <Text style={styles.bookingTitle}>{b.title}</Text>
+            <Text style={styles.bookingTime}>{b.time}</Text>
+            <Text style={styles.bookingDate}>{b.date}</Text>
           </View>
-          <View style={styles.bookingItem}>
-            <Text style={{ color: theme.colors.text }}>Gym{"\n"}2.00pm - 3.30pm</Text>
-            <Text style={{ color: theme.colors.text }}>8/7/25</Text>
+        ))}
+      </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Announcements</Text>
+        {announcements.map((a, i) => (
+          <View key={i} style={styles.announcementCard}>
+            <Text style={styles.announcementTitle}>{a.title}</Text>
+            <Text style={styles.announcementTime}>{a.time}</Text>
           </View>
-        </Card.Content>
-      </Card>
-
-      <Card style={styles.section}>
-        <Card.Title title="Announcements" />
-        <Card.Content>
-          <Text style={{ color: theme.colors.text }}>Gym Maintenance - 19/7/25{"\n"}2 days ago</Text>
-          <Text style={{ color: theme.colors.text }}>New Equipment Available{"\n"}4 hours ago</Text>
-          <Text style={{ color: theme.colors.text }}>Change in Gym Hours{"\n"}1 day ago</Text>
-        </Card.Content>
-      </Card>
-
-      <Button mode="contained" style={styles.historyButton}>View History</Button>
+        ))}
+      </View>
+      <TouchableOpacity 
+        style={styles.historyBtn}
+        onPress={() => navigation.navigate('History')}
+      >
+        <Text style={styles.historyBtnText}>View History</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  header: { fontSize: 28, fontWeight: 'bold', marginBottom: 16 },
-  settingsIcon: { marginTop: 8 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  statCard: { flex: 1, margin: 4, alignItems: 'center', justifyContent: 'center' },
-  statText: { color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: 16 },
-  actionButton: { flex: 1, margin: 4, backgroundColor: '#2196F3' },
-  section: { marginVertical: 8 },
-  bookingItem: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 4 },
-  historyButton: { marginTop: 16, backgroundColor: '#2196F3' },
+  container: { padding: 20, backgroundColor: '#fff', flexGrow: 1 },
+  greeting: { fontSize: 24, fontWeight: 'bold', marginBottom: 14 },
+  statsRow: { flexDirection: 'row', marginBottom: 18 },
+  statsBox: { flex: 1, backgroundColor: '#eaf1fb', borderRadius: 9, alignItems: 'center', padding: 16, marginHorizontal: 4 },
+  statsNum: { fontSize: 30, fontWeight: 'bold', color: '#388CFB' },
+  statsLabel: { fontSize: 13, color: '#333', marginTop: 6 },
+  actionRow: { flexDirection: 'row', marginBottom: 18 },
+  actionBtn: { flex: 1, padding: 15, borderRadius: 12, marginHorizontal: 4, alignItems: 'center' },
+  actionText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  actionTextAlt: { color: '#333', fontWeight: 'bold', fontSize: 15 },
+  section: { marginTop: 16 },
+  sectionTitle: { fontWeight: 'bold', fontSize: 16, marginBottom: 7 },
+  bookingCard: { backgroundColor: '#f3f6fb', padding: 12, borderRadius: 8, marginBottom: 6 },
+  bookingTitle: { fontWeight: '600', fontSize: 15 },
+  bookingTime: { color: '#555' },
+  bookingDate: { color: '#999', fontSize: 12 },
+  announcementCard: { backgroundColor: '#e3ebf7', padding: 10, borderRadius: 8, marginBottom: 6 },
+  announcementTitle: { fontWeight: '500' },
+  announcementTime: { color: '#888', fontSize: 11 },
+  historyBtn: { marginTop: 20, alignSelf: 'center', padding: 10 },
+  historyBtnText: { fontWeight: 'bold', color: '#388CFB' }
 });

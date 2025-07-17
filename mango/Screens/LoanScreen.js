@@ -1,41 +1,50 @@
+// Screens/LoanScreen.js
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, Image } from 'react-native';
-import { Searchbar, Text, Card } from 'react-native-paper';
+import { View, TextInput, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 
-const equipmentList = [
-  { name: 'Basketball', available: 2, },
-  { name: 'Volleyball', available: 3, },
-  { name: 'Tennis Rackets', available: 4, },
-  { name: 'Badminton Rackets', available: 5, },
-  { name: 'Football', available: 6, },
-  { name: 'Shuttlecocks', available: 6, },
+const equipment = [
+  { id: '1', name: 'Basketball', available: 2 },
+  { id: '2', name: 'Volleyball', available: 4 },
+  { id: '3', name: 'Tennis Racket', available: 5 },
+  { id: '4', name: 'Shuttlecocks', available: 9 },
+  { id: '5', name: 'Football', available: 2 },
 ];
 
 export default function LoanScreen() {
   const [search, setSearch] = useState('');
-  const filtered = equipmentList.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = equipment.filter(eq => eq.name.toLowerCase().includes(search.toLowerCase()));
+
+  function handleLoan(item) {
+    Alert.alert('Loan Request Sent', `You have loaned a ${item.name}.`, [{ text: 'Ok' }]);
+    // Here, post to backend and set up reminder notification
+  }
 
   return (
     <View style={styles.container}>
-      <Searchbar
-        placeholder="Search for equipment"
+      <Text style={styles.header}>Loan Equipment</Text>
+      <TextInput
+        style={styles.search}
         value={search}
         onChangeText={setSearch}
-        style={styles.search}
+        placeholder="Search equipment..."
       />
       <FlatList
         data={filtered}
-        keyExtractor={item => item.name}
-        renderItem={({ item }) => (
-          <Card style={styles.card}>
-            <View style={styles.row}>
-              <View>
-                <Text style={styles.available}>Available</Text>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.count}>{item.available} available</Text>
-              </View>
+        keyExtractor={item => item.id}
+        renderItem={({item}) => (
+          <View style={styles.equipmentRow}>
+            <View style={styles.equipmentDetails}>
+              <Text style={styles.equipmentName}>{item.name}</Text>
+              <Text style={styles.equipmentAvail}>{item.available} available</Text>
             </View>
-          </Card>
+            <TouchableOpacity
+              style={[styles.loanBtn, {backgroundColor: item.available ? '#388CFB' : '#ccc'}]}
+              disabled={!item.available}
+              onPress={() => handleLoan(item)}
+            >
+              <Text style={{color:'#fff'}}>Loan</Text>
+            </TouchableOpacity>
+          </View>
         )}
       />
     </View>
@@ -43,12 +52,12 @@ export default function LoanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  search: { marginBottom: 12 },
-  card: { marginVertical: 6, padding: 8 },
-  row: { flexDirection: 'row', alignItems: 'center' },
-  image: { width: 60, height: 60, marginRight: 16 },
-  available: { color: '#2196F3', fontWeight: 'bold' },
-  name: { fontSize: 18, fontWeight: 'bold' },
-  count: { color: 'gray' },
+  container: { flex:1, backgroundColor:'#fff', padding:20 },
+  header: { fontSize:22, fontWeight:'bold', marginBottom:10 },
+  search: { padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#eee', marginBottom: 14 },
+  equipmentRow: { flexDirection:'row', alignItems:'center', marginBottom:12, backgroundColor:'#f2f6fd', borderRadius:8, padding:13 },
+  equipmentDetails: { flex: 1 },
+  equipmentName: { fontWeight:'bold', fontSize:16 },
+  equipmentAvail: { color:'gray', fontSize:13 },
+  loanBtn: { padding: 10, borderRadius: 8, minWidth:60, alignItems:'center' },
 });

@@ -1,39 +1,57 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+// Screens/BookingScreen.js
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { Button, Text, Card } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import { useTheme } from 'react-native-paper';
+
+const slots = [
+  { id: '1', time: '10:00 – 11:00' },
+  { id: '2', time: '12:00 – 13:00' },
+  { id: '3', time: '13:00 – 14:00' },
+  { id: '4', time: '14:00 – 15:00' },
+];
 
 export default function BookingScreen() {
-  const theme = useTheme();
+  const [selected, setSelected] = useState(null);
+
+  function handleBook(slot) {
+    Alert.alert('Booked!', `You booked ${slot.time} on ${selected}`, [{ text: 'Ok' }]);
+    // You’d post to backend here
+  }
+
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.header}>Gym Booking</Text>
       <Calendar
-        current={'2024-10-07'}
-        markedDates={{ '2024-10-07': { selected: true, selectedColor: '#2196F3' } }}
+        onDayPress={day => setSelected(day.dateString)}
+        markedDates={selected ? { [selected]: { selected: true, selectedColor: '#388CFB' } } : {}}
         style={styles.calendar}
       />
       <Text style={styles.subHeader}>Available Slots</Text>
-      {['10:00 AM - 11:00 AM', '11:00 AM - 12:00 PM', '12:00 PM - 1:00 PM', '1:00 PM - 2:00 PM'].map((slot, idx) => (
-        <Card key={idx} style={styles.slotCard}>
-          <Card.Content style={styles.slotRow}>
-            <Text>Gym Slot {idx + 1}{"\n"}{slot}</Text>
-            <Button mode="contained" style={styles.bookButton}>Book</Button>
-          </Card.Content>
-        </Card>
-      ))}
-    </ScrollView>
+      <FlatList
+        data={slots}
+        keyExtractor={item => item.id}
+        renderItem={({item}) => (
+          <View style={styles.slotRow}>
+            <Text style={{fontSize:15, flex:1}}>{item.time}</Text>
+            <TouchableOpacity 
+              style={[styles.bookBtn, {backgroundColor: selected ? '#388CFB' : '#ccc'}]}
+              disabled={!selected}
+              onPress={() => handleBook(item)}
+            >
+              <Text style={{color:'#fff'}}>Book</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
-  calendar: { marginBottom: 16 },
-  subHeader: { fontSize: 18, fontWeight: 'bold', marginVertical: 8 },
-  slotCard: { marginVertical: 4 },
-  slotRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  bookButton: { backgroundColor: '#2196F3' },
+  container: {flex:1, backgroundColor:'#fff', padding:20 },
+  header: { fontSize:22, fontWeight:'bold', marginBottom:10 },
+  calendar: { marginBottom: 14, borderRadius:9, overflow:'hidden'},
+  subHeader: { fontWeight: 'bold', fontSize: 17, marginBottom: 8 },
+  slotRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  bookBtn: { padding: 9, borderRadius: 6 },
 });

@@ -1,40 +1,51 @@
+// Screens/HistoryScreen.js
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, Card } from 'react-native-paper';
-import { useTheme } from 'react-native-paper';
+import { View, Text, StyleSheet } from 'react-native';
+
+const myLoans = [
+  { name: 'Basketball', due: '2025-08-18' },
+  { name: 'Shuttlecocks', due: '2025-08-20' },
+];
+const myBookings = [
+  { session: 'Gym Session', time: '2025-08-17, 11:00-12:00' },
+  { session: 'Gym Session', time: '2025-08-18, 14:00-15:00' },
+];
 
 export default function HistoryScreen() {
-  const theme = useTheme();
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>History</Text>
-      <Text style={styles.subHeader}>My Loans</Text>
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text>Basketball</Text>
-          <Text>Due: 2024-08-15</Text>
-        </Card.Content>
-      </Card>
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text>Volleyball</Text>
-          <Text>Due: 2024-08-16</Text>
-        </Card.Content>
-      </Card>
-      <Text style={styles.subHeader}>Gym Bookings</Text>
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text>Gym Session</Text>
-          <Text>2024-08-14, 10:00 AM - 11:00 AM</Text>
-        </Card.Content>
-      </Card>
+      <Text style={styles.header}>My History</Text>
+      <Text style={styles.section}>Loans</Text>
+      {myLoans.length ? myLoans.map((l, i) => (
+        <View key={i} style={styles.row}>
+          <Text style={styles.icon}>🏀</Text>
+          <View>
+            <Text style={styles.name}>{l.name}</Text>
+            <Text style={styles.subtext}>Due: {l.due}</Text>
+          </View>
+        </View>
+      )) : <Text style={styles.empty}>No loans yet.</Text>}
+      <Text style={styles.section}>Bookings</Text>
+      {myBookings.length ? myBookings.map((b, i) => (
+        <View key={i} style={styles.row}>
+          <Text style={styles.icon}>🏋️</Text>
+          <View>
+            <Text style={styles.name}>{b.session}</Text>
+            <Text style={styles.subtext}>{b.time}</Text>
+          </View>
+        </View>
+      )) : <Text style={styles.empty}>No bookings yet.</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 12 },
-  subHeader: { fontSize: 18, fontWeight: 'bold', marginTop: 16, marginBottom: 8 },
-  card: { marginVertical: 4 },
+  container: { flex:1, backgroundColor:'#fff', padding:20 },
+  header: { fontSize:22, fontWeight:'bold', marginBottom:10 },
+  section: { fontWeight:'bold', fontSize:15, marginTop:18, marginBottom:6 },
+  row: { flexDirection:'row', alignItems:'center', marginBottom:7 },
+  icon: { fontSize:25, marginRight:8 },
+  name: { fontWeight:'bold' },
+  subtext: { color:'#666', fontSize:12 },
+  empty: { color: 'gray', marginVertical:4 }
 });

@@ -1,31 +1,27 @@
-import React, { useContext } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, Switch, List } from 'react-native-paper';
-import { ThemeContext } from '../ThemeContext'; 
+// Screens/SettingsScreen.js
+import React from 'react';
+import { View, Text, StyleSheet, Switch } from 'react-native';
+
 export default function SettingsScreen() {
-  const { isDark, setIsDark } = useContext(ThemeContext);
+  const [notifications, setNotifications] = React.useState(true);
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Settings</Text>
-      <List.Item
-        title="Dark Mode"
-        left={props => <List.Icon {...props} icon="theme-light-dark" color="#2196F3" />}
-        right={() => (
-          <Switch
-            value={isDark}
-            onValueChange={() => setIsDark(!isDark)}
-            color="#2196F3"
-          />
-        )}
-        style={styles.listItem}
-      />
+      <View style={styles.settingRow}>
+        <Text style={styles.label}>Push Notifications</Text>
+        <Switch
+          value={notifications}
+          onValueChange={setNotifications}
+        />
+      </View>
+      <Text style={{color:'#888', marginTop:40}}>App Version 1.0.0</Text>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 12 },
-  listItem: { marginVertical: 8 },
+  container: { flex:1, backgroundColor:'#fff', padding:24 },
+  header: { fontSize:22, fontWeight:'bold', marginBottom:18 },
+  settingRow: { flexDirection:'row', alignItems:'center', justifyContent:'space-between', marginVertical:18 },
+  label: { fontSize:16 },
 });
