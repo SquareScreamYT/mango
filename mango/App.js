@@ -7,11 +7,7 @@ import AppNavigator from './Navigation/AppNavigator';
 export default function App() {
   return (
     <>
-      {/* Set your desired status bar style and background color */}
-      <StatusBar 
-        barStyle="dark-content"  // text/icons in dark color for light backgrounds
-        backgroundColor="#ffffff" // white background (Android only)
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <NavigationContainer>
         <AppNavigator />
       </NavigationContainer>
