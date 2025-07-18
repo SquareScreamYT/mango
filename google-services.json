@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "631415312610",
+    "project_id": "mango-47451",
+    "storage_bucket": "mango-47451.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:631415312610:android:62b6a03e8da00cd0938ebb",
+        "android_client_info": {
+          "package_name": "com.mango.CalyxOne"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBF_WtFqHKb9-vGbHT_BdO8wypIMVfFyk8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
