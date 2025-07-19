@@ -1,21 +1,43 @@
 // Screens/BookingScreen.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { getFirestore, doc, onSnapshot, setDoc } from "firebase/firestore";
+import { app } from "../firebaseConfig"; // adjust path if needed
 
-const slots = [
-  { id: '1', time: '10:00 – 11:00' },
-  { id: '2', time: '12:00 – 13:00' },
-  { id: '3', time: '13:00 – 14:00' },
-  { id: '4', time: '14:00 – 15:00' },
-];
+const db = getFirestore(app);
 
 export default function BookingScreen() {
   const [selected, setSelected] = useState(null);
+  const [slots, setSlots] = useState([]);
+
+  useEffect(() => {
+    if (!selected) {
+      setSlots([]);
+      return;
+    }
+    const bookingRef = doc(db, "bookings", selected);
+    const unsubscribe = onSnapshot(bookingRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Only show slots that are available (true)
+        const availableSlots = Object.entries(data.slots || {})
+          .filter(([_, available]) => available)
+          .map(([time], idx) => ({
+            id: time,
+            time,
+          }));
+        setSlots(availableSlots);
+      } else {
+        setSlots([]); // No slots for this date
+      }
+    });
+    return () => unsubscribe();
+  }, [selected]);
 
   function handleBook(slot) {
     Alert.alert('Booked!', `You booked ${slot.time} on ${selected}`, [{ text: 'Ok' }]);
-    // You’d post to backend here
+    // Add Firestore update logic here if you want to mark as booked
   }
 
   return (
@@ -42,6 +64,7 @@ export default function BookingScreen() {
             </TouchableOpacity>
           </View>
         )}
+        ListEmptyComponent={<Text style={{color:'gray', textAlign:'center'}}>No available slots</Text>}
       />
     </View>
   );
@@ -49,7 +72,7 @@ export default function BookingScreen() {
 
 const styles = StyleSheet.create({
   container: {flex:1, backgroundColor:'#fff', padding:20 },
-  header: { fontSize:22, fontWeight:'bold', marginBottom:10 },
+  header: { fontSize:22, fontWeight:'bold', marginBottom:10 }, 
   calendar: { marginBottom: 14, borderRadius:9, overflow:'hidden'},
   subHeader: { fontWeight: 'bold', fontSize: 17, marginBottom: 8 },
   slotRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
