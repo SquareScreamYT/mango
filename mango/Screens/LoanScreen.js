@@ -1,18 +1,38 @@
 // Screens/LoanScreen.js
-import React, { useState } from 'react';
+import { getFirestore, doc, onSnapshot } from "firebase/firestore";
+import { app } from "../firebaseConfig"; // adjust path if needed
+import React, { useState, useEffect } from 'react';
 import { View, TextInput, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 
-const equipment = [
-  { id: '1', name: 'Basketball', available: 2 },
-  { id: '2', name: 'Volleyball', available: 4 },
-  { id: '3', name: 'Tennis Racket', available: 5 },
-  { id: '4', name: 'Shuttlecocks', available: 9 },
-  { id: '5', name: 'Football', available: 2 },
-];
+const db = getFirestore(app);
 
 export default function LoanScreen() {
   const [search, setSearch] = useState('');
-  const filtered = equipment.filter(eq => eq.name.toLowerCase().includes(search.toLowerCase()));
+  const [equipment, setEquipment] = useState([
+    { id: '1', name: 'Basketball', available: 0 },
+    { id: '2', name: 'Volleyball', available: 0 },
+    { id: '3', name: 'Tennis Racket', available: 0 },
+    { id: '4', name: 'Shuttlecocks', available: 0 },
+    { id: '5', name: 'Football', available: 0 },
+  ]);
+    useEffect(() => {
+    const sportsEquipmentRef = doc(db, "inventory", "sportsEquipment");
+    const unsubscribe = onSnapshot(sportsEquipmentRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setEquipment([
+          { id: '1', name: 'Basketball', available: data.basketballs ?? 0 },
+          { id: '2', name: 'Volleyball', available: data.volleyball ?? 0 },
+          { id: '3', name: 'Tennis Racket', available: data.tennisracket ?? 0 },
+          { id: '4', name: 'Shuttlecocks', available: data.shuttlecocks ?? 0 },
+          { id: '5', name: 'Football', available: data.footballs ?? 0 },
+        ]);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+    const filtered = equipment.filter(eq => eq.name.toLowerCase().includes(search.toLowerCase()));
+
 
   function handleLoan(item) {
     Alert.alert('Loan Request Sent', `You have loaned a ${item.name}.`, [{ text: 'Ok' }]);
@@ -50,6 +70,7 @@ export default function LoanScreen() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex:1, backgroundColor:'#fff', padding:20 },
