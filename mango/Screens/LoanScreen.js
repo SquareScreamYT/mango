@@ -8,25 +8,22 @@ const db = getFirestore(app);
 
 export default function LoanScreen() {
   const [search, setSearch] = useState('');
-  const [equipment, setEquipment] = useState([
-    { id: '1', name: 'Basketball', available: 0 },
-    { id: '2', name: 'Volleyball', available: 0 },
-    { id: '3', name: 'Tennis Racket', available: 0 },
-    { id: '4', name: 'Shuttlecocks', available: 0 },
-    { id: '5', name: 'Football', available: 0 },
-  ]);
+  const [equipment, setEquipment] = useState([]);
+  
     useEffect(() => {
     const sportsEquipmentRef = doc(db, "inventory", "sportsEquipment");
     const unsubscribe = onSnapshot(sportsEquipmentRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        setEquipment([
-          { id: '1', name: 'Basketball', available: data.basketballs ?? 0 },
-          { id: '2', name: 'Volleyball', available: data.volleyball ?? 0 },
-          { id: '3', name: 'Tennis Racket', available: data.tennisracket ?? 0 },
-          { id: '4', name: 'Shuttlecocks', available: data.shuttlecocks ?? 0 },
-          { id: '5', name: 'Football', available: data.footballs ?? 0 },
-        ]);
+        // Convert Firestore fields to array of { id, name, available }
+        const items = Object.entries(data).map(([key, value], idx) => ({
+          id: key,
+          name: key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase()), // e.g. tennisracket -> Tennisracket
+          available: value ?? 0,
+        }));
+        setEquipment(items);
+      } else {
+        setEquipment([]);
       }
     });
     return () => unsubscribe();
