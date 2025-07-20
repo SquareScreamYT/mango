@@ -1,70 +1,203 @@
-// Screens/BookingScreen.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { getFirestore, doc, onSnapshot, setDoc } from "firebase/firestore";
-import { app } from "../firebaseConfig"; // adjust path if needed
+import { getFirestore, doc, onSnapshot, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { app, auth } from "../firebaseConfig";
 
 const db = getFirestore(app);
 
 export default function BookingScreen() {
   const [selected, setSelected] = useState(null);
   const [slots, setSlots] = useState([]);
+  const [allYourSlots, setAllYourSlots] = useState([]);
+  const [markedDates, setMarkedDates] = useState({});
 
+  // Load all user's booked slots across all dates
+  useEffect(() => {
+    if (!auth.currentUser) {
+      setAllYourSlots([]);
+      setMarkedDates({});
+      return;
+    }
+
+    const loadAllUserSlots = async () => {
+      try {
+        const bookingsRef = collection(db, "bookings");
+        const snapshot = await getDocs(bookingsRef);
+        
+        const userSlots = [];
+        const datesWithBookings = {};
+        
+        snapshot.forEach((doc) => {
+          const date = doc.id;
+          const data = doc.data();
+          const slots = data.slots || {};
+          
+          Object.entries(slots).forEach(([time, value]) => {
+            if (typeof value === "object" && value.userId === auth.currentUser.uid) {
+              userSlots.push({
+                id: `${date}-${time}`,
+                date: date,
+                time: time,
+                datetime: `${date} ${time}`
+              });
+              datesWithBookings[date] = { 
+                marked: true, 
+                dotColor: '#388CFB',
+                selected: selected === date,
+                selectedColor: selected === date ? '#388CFB' : undefined
+              };
+            }
+          });
+        });
+        
+        // Sort slots by date and time
+        userSlots.sort((a, b) => {
+          if (a.date !== b.date) {
+            return new Date(a.date) - new Date(b.date);
+          }
+          return a.time.localeCompare(b.time);
+        });
+        
+        setAllYourSlots(userSlots);
+        
+        // Update marked dates to include selected date
+        const updatedMarkedDates = { ...datesWithBookings };
+        if (selected) {
+          if (updatedMarkedDates[selected]) {
+            updatedMarkedDates[selected] = {
+              ...updatedMarkedDates[selected],
+              selected: true,
+              selectedColor: '#388CFB'
+            };
+          } else {
+            updatedMarkedDates[selected] = {
+              selected: true,
+              selectedColor: '#388CFB'
+            };
+          }
+        }
+        
+        setMarkedDates(updatedMarkedDates);
+      } catch (error) {
+        console.error("Error loading user slots:", error);
+      }
+    };
+
+    loadAllUserSlots();
+  }, [auth.currentUser, selected]);
+
+  // Load slots for selected date
   useEffect(() => {
     if (!selected) {
       setSlots([]);
       return;
     }
+    
     const bookingRef = doc(db, "bookings", selected);
     const unsubscribe = onSnapshot(bookingRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        // Only show slots that are available (true)
-        const availableSlots = Object.entries(data.slots || {})
-          .filter(([_, available]) => available)
-          .map(([time], idx) => ({
-            id: time,
-            time,
-          }));
-        setSlots(availableSlots);
+        const allSlots = Object.entries(data.slots || {}).map(([time, value]) => {
+          if (value === true) {
+            return { id: time, time, status: "available" };
+          } else if (typeof value === "object" && value.userId) {
+            if (auth.currentUser && value.userId === auth.currentUser.uid) {
+              return { id: time, time, status: "yours" };
+            }
+            return { id: time, time, status: "unavailable" };
+          } else {
+            return { id: time, time, status: "unavailable" };
+          }
+        });
+        setSlots(allSlots);
       } else {
-        setSlots([]); // No slots for this date
+        setSlots([]);
       }
     });
+    
     return () => unsubscribe();
   }, [selected]);
 
-  function handleBook(slot) {
-    Alert.alert('Booked!', `You booked ${slot.time} on ${selected}`, [{ text: 'Ok' }]);
-    // Add Firestore update logic here if you want to mark as booked
+  async function handleBook(slot) {
+    if (!auth.currentUser) {
+      Alert.alert('Not logged in', 'Please log in to book a slot.');
+      return;
+    }
+    const bookingRef = doc(db, "bookings", selected);
+    try {
+      await updateDoc(bookingRef, {
+        [`slots.${slot.time}`]: { userId: auth.currentUser.uid }
+      });
+      Alert.alert('Booked!', `You booked ${slot.time} on ${selected}`, [{ text: 'Ok' }]);
+    } catch (e) {
+      Alert.alert('Booking Failed', e.message);
+    }
   }
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Gym Booking</Text>
       <Calendar
         onDayPress={day => setSelected(day.dateString)}
-        markedDates={selected ? { [selected]: { selected: true, selectedColor: '#388CFB' } } : {}}
+        markedDates={markedDates}
         style={styles.calendar}
       />
-      <Text style={styles.subHeader}>Available Slots</Text>
+      
+      {selected && (
+        <>
+          <Text style={styles.subHeader}>All Slots for {formatDate(selected)}</Text>
+          <FlatList
+            data={slots}
+            keyExtractor={item => item.id}
+            renderItem={({item}) => (
+              <View style={styles.slotRow}>
+                <Text style={{fontSize:15, flex:1}}>{item.time}</Text>
+                {item.status === "available" ? (
+                  <TouchableOpacity 
+                    style={[styles.bookBtn, {backgroundColor: '#388CFB'}]}
+                    onPress={() => handleBook(item)}
+                  >
+                    <Text style={{color:'#fff'}}>Book</Text>
+                  </TouchableOpacity>
+                ) : item.status === "yours" ? (
+                  <Text style={{color: '#388CFB', fontWeight: 'bold'}}>Booked by You</Text>
+                ) : (
+                  <Text style={{color: 'gray'}}>Unavailable</Text>
+                )}
+              </View>
+            )}
+            ListEmptyComponent={<Text style={{color:'gray', textAlign:'center'}}>No slots for this date</Text>}
+            style={styles.slotsList}
+          />
+        </>
+      )}
+
+      <Text style={styles.subHeader}>Your Booked Slots</Text>
       <FlatList
-        data={slots}
+        data={allYourSlots}
         keyExtractor={item => item.id}
         renderItem={({item}) => (
           <View style={styles.slotRow}>
-            <Text style={{fontSize:15, flex:1}}>{item.time}</Text>
-            <TouchableOpacity 
-              style={[styles.bookBtn, {backgroundColor: selected ? '#388CFB' : '#ccc'}]}
-              disabled={!selected}
-              onPress={() => handleBook(item)}
-            >
-              <Text style={{color:'#fff'}}>Book</Text>
-            </TouchableOpacity>
+            <View style={{flex: 1}}>
+              <Text style={{fontSize: 15, fontWeight: 'bold'}}>{formatDate(item.date)}</Text>
+              <Text style={{fontSize: 13, color: 'gray', marginTop: 2}}>{item.time}</Text>
+            </View>
+            <Text style={{color: '#388CFB', fontWeight: 'bold'}}>Booked</Text>
           </View>
         )}
-        ListEmptyComponent={<Text style={{color:'gray', textAlign:'center'}}>No available slots</Text>}
+        ListEmptyComponent={<Text style={{color:'gray', textAlign:'center'}}>No slots booked</Text>}
+        style={styles.yourSlotsList}
       />
     </View>
   );
@@ -74,7 +207,9 @@ const styles = StyleSheet.create({
   container: {flex:1, backgroundColor:'#fff', padding:20 },
   header: { fontSize:22, fontWeight:'bold', marginBottom:10 }, 
   calendar: { marginBottom: 14, borderRadius:9, overflow:'hidden'},
-  subHeader: { fontWeight: 'bold', fontSize: 17, marginBottom: 8 },
+  subHeader: { fontWeight: 'bold', fontSize: 17, marginBottom: 8, marginTop: 16 },
   slotRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   bookBtn: { padding: 9, borderRadius: 6 },
+  slotsList: { maxHeight: 200, marginBottom: 10 },
+  yourSlotsList: { flex: 1 },
 });
