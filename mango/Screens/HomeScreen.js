@@ -1,23 +1,38 @@
-// Screens/HomeScreen.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { auth } from "../firebaseConfig";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { app } from "../firebaseConfig";
+
+const db = getFirestore(app);
+
 
 export default function HomeScreen({ navigation }) {
-  const activeBookings = 2;
-  const equipmentLoaned = 1;
-  const bookings = [
-    { title: 'Gym', time: '12:00 – 13:00', date: '2025-09-02' },
-    { title: 'Gym', time: '14:00 – 15:30', date: '2025-08-07' },
-  ];
-  const announcements = [
-    { title: 'Gym Maintenance - 19/7/25', time: '2 days ago' },
-    { title: 'New Equipment Available', time: '4 hours ago' },
-    { title: 'Change in Gym Hours', time: '1 day ago' },
-  ];
+  const [userData, setUserData] = useState({ name: '', level: '' });
+  // Add these lines:
+  const activeBookings = 0; // or fetch from Firestore if you have logic
+  const equipmentLoaned = 0; // or fetch from Firestore if you have logic
+  const bookings = []; // or fetch from Firestore if you have logic
+  const announcements = []; // or fetch from Firestore if you have logic
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const docSnap = await getDoc(doc(db, "users", user.uid));
+        if (docSnap.exists()) {
+          setUserData(docSnap.data());
+        } else {
+          setUserData({ name: user.displayName || '', level: '' });
+        }
+      }
+    };
+    fetchUser();
+  }, []);
 
+  // ...existing code...
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.greeting}>Hello, John Tan</Text>
+      <Text style={styles.greeting}>Hello, {userData.name}</Text>
       <View style={styles.statsRow}>
         <View style={styles.statsBox}>
           <Text style={styles.statsNum}>{activeBookings}</Text>
@@ -72,8 +87,18 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: '#fff', flexGrow: 1 },
-  greeting: { fontSize: 24, fontWeight: 'bold', marginBottom: 14 },
+  container: {
+    flex: 1,
+    padding: 24,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  greeting: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
   statsRow: { flexDirection: 'row', marginBottom: 18 },
   statsBox: { flex: 1, backgroundColor: '#eaf1fb', borderRadius: 9, alignItems: 'center', padding: 16, marginHorizontal: 4 },
   statsNum: { fontSize: 30, fontWeight: 'bold', color: '#388CFB' },
@@ -93,4 +118,5 @@ const styles = StyleSheet.create({
   announcementTime: { color: '#888', fontSize: 11 },
   historyBtn: { marginTop: 20, alignSelf: 'center', padding: 10 },
   historyBtnText: { fontWeight: 'bold', color: '#388CFB' }
+  // Add more styles as needed for your UI
 });

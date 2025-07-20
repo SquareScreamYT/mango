@@ -1,7 +1,6 @@
-// Navigation/AppNavigator.js
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
 import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import HomeScreen from '../Screens/HomeScreen';
@@ -12,6 +11,7 @@ import HistoryScreen from '../Screens/HistoryScreen';
 import SettingsScreen from '../Screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
+const RootStack = createStackNavigator();
 const ProfileStack = createStackNavigator();
 
 function ProfileStackScreen() {
@@ -28,7 +28,7 @@ function ProfileStackScreen() {
   );
 }
 
-export default function AppNavigator() {
+function MainTabs() {
   return (
     <Tab.Navigator>
       <Tab.Screen 
@@ -52,5 +52,14 @@ export default function AppNavigator() {
         options={{ tabBarIcon: ({color, size}) => (<Icon name="account" color={color} size={size} />) }}
       />
     </Tab.Navigator>
+  );
+}
+
+
+export default function AppNavigator() {
+  return (
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      <RootStack.Screen name="Main" component={MainTabs} />
+    </RootStack.Navigator>
   );
 }
