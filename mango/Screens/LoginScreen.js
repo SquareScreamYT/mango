@@ -5,7 +5,7 @@ import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { app } from "../firebaseConfig";
 import { auth } from "../firebaseConfig";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-// remove: const auth = getAuth(app);
+
 const db = getFirestore(app);
 
 export default function LoginScreen({ navigation }) {
@@ -18,17 +18,16 @@ export default function LoginScreen({ navigation }) {
   const [signUpPassword, setSignUpPassword] = useState('');
   const [name, setName] = useState('');
   const [level, setLevel] = useState('sec1');
+  // Role will be set to 'user' by default, admins must be set manually in Firebase
 
-  // ...existing code...
-const handleLogin = async () => {
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    // REMOVE navigation.replace('Main');
-    // Do nothing here! App.js will handle navigation on auth state change.
-  } catch (error) {
-    Alert.alert('Login Failed', error.message);
-  }
-};
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Do nothing here! App.js will handle navigation on auth state change.
+    } catch (error) {
+      Alert.alert('Login Failed', error.message);
+    }
+  };
 
   const handleSignUp = async () => {
     if (!name) return Alert.alert('Missing Name', 'Please enter your name.');
@@ -38,7 +37,8 @@ const handleLogin = async () => {
       await setDoc(doc(db, "users", userCredential.user.uid), {
         name,
         email: signUpEmail,
-        level
+        level,
+        role: 'user' // Always set to 'user' by default
       });
       setShowSignUp(false);
       setEmail(signUpEmail);
@@ -132,5 +132,3 @@ const styles = StyleSheet.create({
   modalOverlay: { flex:1, backgroundColor:'rgba(0,0,0,0.3)', justifyContent:'center', alignItems:'center' },
   modalContent: { backgroundColor:'#fff', borderRadius:10, padding:20, width:'90%' },
 });
-
-//bsuhgfydrtfyguhiytdrgh

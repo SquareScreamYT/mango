@@ -34,7 +34,8 @@ export default function BookingScreen() {
           const slots = data.slots || {};
           
           Object.entries(slots).forEach(([time, value]) => {
-            if (typeof value === "object" && value.userId === auth.currentUser.uid) {
+            // Fixed: Check for null explicitly before accessing properties
+            if (value && typeof value === "object" && value.userId === auth.currentUser.uid) {
               userSlots.push({
                 id: `${date}-${time}`,
                 date: date,
@@ -101,7 +102,8 @@ export default function BookingScreen() {
         const allSlots = Object.entries(data.slots || {}).map(([time, value]) => {
           if (value === true) {
             return { id: time, time, status: "available" };
-          } else if (typeof value === "object" && value.userId) {
+          } else if (value && typeof value === "object" && value.userId) {
+            // Fixed: Check for null explicitly before accessing properties
             if (auth.currentUser && value.userId === auth.currentUser.uid) {
               return { id: time, time, status: "yours" };
             }

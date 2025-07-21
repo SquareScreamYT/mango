@@ -1,9 +1,11 @@
 
 import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import HomeScreen from '../Screens/HomeScreen';
+import AdminSettingsScreen from '../Screens/AdminSettingsScreen'; 
 import BookingScreen from '../Screens/BookingScreen';
 import LoanScreen from '../Screens/LoanScreen';
 import ProfileScreen from '../Screens/ProfileScreen';
@@ -22,8 +24,21 @@ function ProfileStackScreen() {
         component={ProfileScreen} 
         options={{ headerShown: false }} 
       />
-      <ProfileStack.Screen name="History" component={HistoryScreen} />
-      <ProfileStack.Screen name="Settings" component={SettingsScreen} />
+      <ProfileStack.Screen 
+        name="History" 
+        component={HistoryScreen} 
+        options={{ title: 'Booking History' }}
+      />
+      <ProfileStack.Screen 
+        name="Settings" 
+        component={SettingsScreen} 
+        options={{ title: 'Settings' }}
+      />
+      <ProfileStack.Screen 
+        name="AdminSettings" 
+        component={AdminSettingsScreen} 
+        options={{ title: 'Admin Settings' }}
+      />
     </ProfileStack.Navigator>
   );
 }
