@@ -4,9 +4,19 @@ import { app } from "../firebaseConfig";
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { ScrollView } from 'react-native'; 
+import * as Notifications from 'expo-notifications';
 
 const db = getFirestore(app);
 const auth = getAuth();
+
+// Configure notification behavior
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function LoanScreen() {
   const [search, setSearch] = useState('');
@@ -15,6 +25,15 @@ export default function LoanScreen() {
   const user = auth.currentUser;
 
   useEffect(() => {
+    // Request notification permissions when component mounts
+    const requestPermissions = async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Notification permission not granted');
+      }
+    };
+    requestPermissions();
+
     const sportsEquipmentRef = doc(db, "inventory", "sportsEquipment");
     const unsubscribe = onSnapshot(sportsEquipmentRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -49,6 +68,17 @@ export default function LoanScreen() {
 
   const filtered = equipment.filter(eq => eq.name.toLowerCase().includes(search.toLowerCase()));
 
+  const showLoanNotification = async (itemName) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Equipment Loan Confirmed',
+        body: 'Loaned successfully, collect by 3:00p.m. at Locker 123',
+        data: { itemName },
+      },
+      trigger: null, // Show immediately
+    });
+  };
+
   const handleLoan = async (item) => {
     if (!user) return Alert.alert("Login required");
 
@@ -75,6 +105,9 @@ export default function LoanScreen() {
         });
       });
 
+      // Show notification after successful loan
+      await showLoanNotification(item.name);
+      
       Alert.alert('Loan Requested', `You have loaned a ${item.name}.`);
     } catch (error) {
       console.error("Loan error:", error);
