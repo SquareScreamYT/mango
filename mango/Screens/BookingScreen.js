@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { getFirestore, doc, onSnapshot, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { app, auth } from "../firebaseConfig";
@@ -148,7 +148,11 @@ export default function BookingScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+    >
       <Text style={styles.header}>Gym Booking</Text>
       <Calendar
         onDayPress={day => setSelected(day.dateString)}
@@ -181,6 +185,8 @@ export default function BookingScreen() {
             )}
             ListEmptyComponent={<Text style={{color:'gray', textAlign:'center'}}>No slots for this date</Text>}
             style={styles.slotsList}
+            scrollEnabled={false}
+            nestedScrollEnabled={false}
           />
         </>
       )}
@@ -200,18 +206,21 @@ export default function BookingScreen() {
         )}
         ListEmptyComponent={<Text style={{color:'gray', textAlign:'center'}}>No slots booked</Text>}
         style={styles.yourSlotsList}
+        scrollEnabled={false}
+        nestedScrollEnabled={false}
       />
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {flex:1, backgroundColor:'#fff', padding:20 },
-  header: { fontSize:22, fontWeight:'bold', marginBottom:10 }, 
-  calendar: { marginBottom: 14, borderRadius:9, overflow:'hidden'},
+  container: { flex: 1, backgroundColor: '#fff' },
+  scrollContent: { padding: 20, paddingBottom: 40 },
+  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 10 }, 
+  calendar: { marginBottom: 14, borderRadius: 9, overflow: 'hidden' },
   subHeader: { fontWeight: 'bold', fontSize: 17, marginBottom: 8, marginTop: 16 },
   slotRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   bookBtn: { padding: 9, borderRadius: 6 },
-  slotsList: { maxHeight: 200, marginBottom: 10 },
-  yourSlotsList: { flex: 1 },
+  slotsList: { marginBottom: 10 },
+  yourSlotsList: { marginBottom: 20 },
 });
