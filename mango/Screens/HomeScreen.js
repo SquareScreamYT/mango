@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { auth } from "../firebaseConfig";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { app } from "../firebaseConfig";
+import { getFirestore, doc, onSnapshot, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+
 
 const db = getFirestore(app);
 
@@ -10,24 +11,68 @@ const db = getFirestore(app);
 export default function HomeScreen({ navigation }) {
   const [userData, setUserData] = useState({ name: '', level: '' });
   // Add these lines:
-  const activeBookings = 0; // or fetch from Firestore if you have logic
-  const equipmentLoaned = 0; // or fetch from Firestore if you have logic
-  const bookings = []; // or fetch from Firestore if you have logic
-  const announcements = []; // or fetch from Firestore if you have logic
-  useEffect(() => {
-    const fetchUser = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        const docSnap = await getDoc(doc(db, "users", user.uid));
-        if (docSnap.exists()) {
-          setUserData(docSnap.data());
-        } else {
-          setUserData({ name: user.displayName || '', level: '' });
+const [activeBookings, setActiveBookings] = useState(0);
+const [equipmentLoaned, setEquipmentLoaned] = useState(0);
+const [bookings, setBookings] = useState([]);
+const [announcements, setAnnouncements] = useState([]);
+ useEffect(() => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // Listener for user profile
+  const userUnsub = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+    if (docSnap.exists()) {
+      setUserData(docSnap.data());
+    } else {
+      setUserData({ name: user.displayName || '', level: '' });
+    }
+  });
+
+  // Listener for bookings
+  const bookingsUnsub = onSnapshot(collection(db, "bookings"), (snapshot) => {
+    const userBookings = [];
+    snapshot.forEach((doc) => {
+      const date = doc.id;
+      const data = doc.data();
+      const slots = data.slots || {};
+      Object.entries(slots).forEach(([time, slotData]) => {
+        if (slotData && slotData.userId === user.uid) {
+          userBookings.push({
+            title: "Gym Slot",
+            time,
+            date
+          });
         }
-      }
-    };
-    fetchUser();
-  }, []);
+      });
+    });
+    setBookings(userBookings);
+    setActiveBookings(userBookings.length);
+  });
+
+  // Listener for loans
+  const loansUnsub = onSnapshot(
+    query(collection(db, "loans"), where("userId", "==", user.uid), where("returned", "==", false)),
+    (loanSnap) => {
+      setEquipmentLoaned(loanSnap.size);
+    }
+  );
+
+  // Listener for announcements
+  const announcementsUnsub = onSnapshot(collection(db, "announcements"), (annSnap) => {
+    const annList = annSnap.docs.map(doc => doc.data());
+    setAnnouncements(annList);
+  });
+
+  // Cleanup listeners on unmount
+  return () => {
+    userUnsub();
+    bookingsUnsub();
+    loansUnsub();
+    announcementsUnsub();
+  };
+}, []);
+
+
 
   // ...existing code...
   return (

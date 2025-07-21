@@ -61,7 +61,7 @@ export default function ProfileScreen({ navigation }) {
     );
   }
 
-  const defaultAvatar = 'https://i.pravatar.cc/150?img=3';
+  const defaultAvatar = 'https://i.postimg.cc/zXyz8Rg7/blank-profile-picture-973460-960-720.webp';
   const profileImageSource = userData.profilePicture 
     ? { uri: userData.profilePicture } 
     : { uri: defaultAvatar };

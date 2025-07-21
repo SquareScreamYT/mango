@@ -4,6 +4,7 @@ import { Calendar } from 'react-native-calendars';
 import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { app } from "../firebaseConfig";
 import { auth } from "../firebaseConfig";
+import { addDoc, serverTimestamp } from 'firebase/firestore';
 
 const db = getFirestore(app);
 
@@ -12,7 +13,8 @@ export default function AdminSettingsScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('users'); // 'users' or 'slots'
   
-  // Slot management states
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [slots, setSlots] = useState([]);
   const [markedDates, setMarkedDates] = useState({});
@@ -87,7 +89,24 @@ export default function AdminSettingsScreen({ navigation }) {
     } catch (error) {
       console.error('Error loading booking dates:', error);
     }
-  };
+  };const postAnnouncement = async () => {
+  if (!newTitle.trim()) {
+    Alert.alert("Error", "Announcement cannot be empty");
+    return;
+  }
+  try {
+    await addDoc(collection(db, "announcements"), {
+      title: newTitle,
+      time: new Date().toLocaleString(),
+      timestamp: serverTimestamp()
+    });
+    Alert.alert("Success", "Announcement posted");
+    setNewTitle('');
+  } catch (error) {
+    console.error("Error posting announcement:", error);
+    Alert.alert("Error", "Failed to post announcement");
+  }
+};
 
   // Load slots for selected date with real-time updates
   useEffect(() => {
@@ -397,24 +416,48 @@ export default function AdminSettingsScreen({ navigation }) {
       
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'users' && styles.activeTab]}
-          onPress={() => setActiveTab('users')}
-        >
-          <Text style={[styles.tabText, activeTab === 'users' && styles.activeTabText]}>
-            User Management
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'slots' && styles.activeTab]}
-          onPress={() => setActiveTab('slots')}
-        >
-          <Text style={[styles.tabText, activeTab === 'slots' && styles.activeTabText]}>
-            Slot Management
-          </Text>
-        </TouchableOpacity>
-      </View>
-
+  <TouchableOpacity
+    style={[styles.tab, activeTab === 'users' && styles.activeTab]}
+    onPress={() => setActiveTab('users')}
+  >
+    <Text style={[styles.tabText, activeTab === 'users' && styles.activeTabText]}>
+      User Management
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.tab, activeTab === 'slots' && styles.activeTab]}
+    onPress={() => setActiveTab('slots')}
+  >
+    <Text style={[styles.tabText, activeTab === 'slots' && styles.activeTabText]}>
+      Slot Management
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.tab, activeTab === 'announcements' && styles.activeTab]}
+    onPress={() => setActiveTab('announcements')}
+  >
+    <Text style={[styles.tabText, activeTab === 'announcements' && styles.activeTabText]}>
+      Announcements
+    </Text>
+  </TouchableOpacity>
+</View>
+{activeTab === 'announcements' && (
+  <View style={styles.section}>
+    <Text style={styles.subHeader}>Post New Announcement</Text>
+    <TextInput
+      style={[styles.timeInput, { marginBottom: 12 }]}
+      placeholder="Title"
+      value={newTitle}
+      onChangeText={setNewTitle}
+    />
+    <TouchableOpacity
+      style={styles.addSlotButton}
+      onPress={postAnnouncement}
+    >
+      <Text style={styles.addSlotButtonText}>Post Announcement</Text>
+    </TouchableOpacity>
+  </View>
+)}
       {activeTab === 'users' ? (
         /* User Management Tab */
         <>
