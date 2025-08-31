@@ -412,175 +412,165 @@ export default function AdminSettingsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView 
-        style={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.header}>Admin Settings</Text>
-        
-        {/* Tab Navigation */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'users' && styles.activeTab]}
-            onPress={() => setActiveTab('users')}
-          >
-            <Text style={[styles.tabText, activeTab === 'users' && styles.activeTabText]}>
-              User Management
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'slots' && styles.activeTab]}
-            onPress={() => setActiveTab('slots')}
-          >
-            <Text style={[styles.tabText, activeTab === 'slots' && styles.activeTabText]}>
-              Slot Management
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'announcements' && styles.activeTab]}
-            onPress={() => setActiveTab('announcements')}
-          >
-            <Text style={[styles.tabText, activeTab === 'announcements' && styles.activeTabText]}>
-              Announcements
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {activeTab === 'announcements' && (
-          <View style={styles.section}>
-            <Text style={styles.subHeader}>Post New Announcement</Text>
-            <TextInput
-              style={[styles.timeInput, { marginBottom: 12 }]}
-              placeholder="Title"
-              value={newTitle}
-              onChangeText={setNewTitle}
-            />
-            <TouchableOpacity
-              style={styles.addSlotButton}
-              onPress={postAnnouncement}
-            >
-              <Text style={styles.addSlotButtonText}>Post Announcement</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {activeTab === 'users' ? (
-          /* User Management Tab */
-          <>
-            {users && users.length > 0 ? (
-              users.map((item) => (
-                <View key={item.id}>
-                  {renderUser({ item })}
-                </View>
-              ))
-            ) : (
+      <Text style={styles.header}>Admin Settings</Text>
+      
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+  <TouchableOpacity
+    style={[styles.tab, activeTab === 'users' && styles.activeTab]}
+    onPress={() => setActiveTab('users')}
+  >
+    <Text style={[styles.tabText, activeTab === 'users' && styles.activeTabText]}>
+      User Management
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.tab, activeTab === 'slots' && styles.activeTab]}
+    onPress={() => setActiveTab('slots')}
+  >
+    <Text style={[styles.tabText, activeTab === 'slots' && styles.activeTabText]}>
+      Slot Management
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.tab, activeTab === 'announcements' && styles.activeTab]}
+    onPress={() => setActiveTab('announcements')}
+  >
+    <Text style={[styles.tabText, activeTab === 'announcements' && styles.activeTabText]}>
+      Announcements
+    </Text>
+  </TouchableOpacity>
+</View>
+{activeTab === 'announcements' && (
+  <View style={styles.section}>
+    <Text style={styles.subHeader}>Post New Announcement</Text>
+    <TextInput
+      style={[styles.timeInput, { marginBottom: 12 }]}
+      placeholder="Title"
+      value={newTitle}
+      onChangeText={setNewTitle}
+    />
+    <TouchableOpacity
+      style={styles.addSlotButton}
+      onPress={postAnnouncement}
+    >
+      <Text style={styles.addSlotButtonText}>Post Announcement</Text>
+    </TouchableOpacity>
+  </View>
+)}
+      {activeTab === 'users' ? (
+        /* User Management Tab */
+        <>
+          <FlatList
+            data={users}
+            keyExtractor={item => item.id}
+            renderItem={renderUser}
+            ListEmptyComponent={
               <Text style={styles.emptyText}>No users found</Text>
-            )}
-            
-            {/* Refresh Button - Now inside ScrollView */}
-            <TouchableOpacity
-              style={styles.refreshButton}
-              onPress={loadUsers}
-            >
-              <Text style={styles.refreshButtonText}>Refresh Users</Text>
-            </TouchableOpacity>
-          </>
-        ) : activeTab === 'slots' ? (
-          /* Slot Management Tab */
-          <View style={styles.slotManagement}>
-            <Calendar
-              onDayPress={day => setSelectedDate(day.dateString)}
-              markedDates={markedDates}
-              style={styles.calendar}
-            />
+            }
+          />
+          <TouchableOpacity
+            style={styles.refreshButton}
+            onPress={loadUsers}
+          >
+            <Text style={styles.refreshButtonText}>Refresh Users</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        /* Slot Management Tab */
+        <ScrollView style={styles.slotManagement}>
+          <Calendar
+            onDayPress={day => setSelectedDate(day.dateString)}
+            markedDates={markedDates}
+            style={styles.calendar}
+          />
 
-            {selectedDate && (
-              <>
-                <View style={styles.dateHeader}>
-                  <Text style={styles.subHeader}>Slots for {formatDate(selectedDate)}</Text>
+          {selectedDate && (
+            <>
+              <View style={styles.dateHeader}>
+                <Text style={styles.subHeader}>Slots for {formatDate(selectedDate)}</Text>
+                <TouchableOpacity
+                  style={styles.addSlotButton}
+                  onPress={() => setShowAddSlotModal(true)}
+                >
+                  <Text style={styles.addSlotButtonText}>+ Add Slot</Text>
+                </TouchableOpacity>
+              </View>
+
+              <FlatList
+                data={slots}
+                keyExtractor={item => item.id}
+                renderItem={renderSlot}
+                ListEmptyComponent={
+                  <Text style={styles.emptyText}>No slots for this date</Text>
+                }
+                style={styles.slotsList}
+              />
+            </>
+          )}
+
+          {/* Add Slot Modal */}
+          <Modal
+            visible={showAddSlotModal}
+            transparent={true}
+            animationType="slide"
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Add New Slot</Text>
+                <Text style={styles.modalSubtitle}>Date: {selectedDate && formatDate(selectedDate)}</Text>
+                
+                <View style={styles.timeInputContainer}>
+                  <View style={styles.timeInputGroup}>
+                    <Text style={styles.timeLabel}>Start Time</Text>
+                    <TextInput
+                      style={styles.timeInput}
+                      placeholder="HH:MM"
+                      value={newSlotStartTime}
+                      onChangeText={setNewSlotStartTime}
+                      maxLength={5}
+                    />
+                  </View>
+                  
+                  <Text style={styles.timeSeparator}>to</Text>
+                  
+                  <View style={styles.timeInputGroup}>
+                    <Text style={styles.timeLabel}>End Time</Text>
+                    <TextInput
+                      style={styles.timeInput}
+                      placeholder="HH:MM"
+                      value={newSlotEndTime}
+                      onChangeText={setNewSlotEndTime}
+                      maxLength={5}
+                    />
+                  </View>
+                </View>
+                
+                <Text style={styles.timeHint}>Use 24-hour format (e.g., 09:00, 14:30)</Text>
+                
+                <View style={styles.modalButtons}>
                   <TouchableOpacity
-                    style={styles.addSlotButton}
-                    onPress={() => setShowAddSlotModal(true)}
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => {
+                      setShowAddSlotModal(false);
+                      setNewSlotStartTime('');
+                      setNewSlotEndTime('');
+                    }}
                   >
-                    <Text style={styles.addSlotButtonText}>+ Add Slot</Text>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.addButton]}
+                    onPress={addSlot}
+                  >
+                    <Text style={styles.addButtonText}>Add Slot</Text>
                   </TouchableOpacity>
                 </View>
-
-                {slots && slots.length > 0 ? (
-                  slots.map((item) => (
-                    <View key={item.id}>
-                      {renderSlot({ item })}
-                    </View>
-                  ))
-                ) : (
-                  <Text style={styles.emptyText}>No slots for this date</Text>
-                )}
-              </>
-            )}
-          </View>
-        ) : null}
-      </ScrollView>
-
-      {/* Add Slot Modal */}
-      <Modal
-        visible={showAddSlotModal}
-        transparent={true}
-        animationType="slide"
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add New Slot</Text>
-            <Text style={styles.modalSubtitle}>Date: {selectedDate && formatDate(selectedDate)}</Text>
-            
-            <View style={styles.timeInputContainer}>
-              <View style={styles.timeInputGroup}>
-                <Text style={styles.timeLabel}>Start Time</Text>
-                <TextInput
-                  style={styles.timeInput}
-                  placeholder="HH:MM"
-                  value={newSlotStartTime}
-                  onChangeText={setNewSlotStartTime}
-                  maxLength={5}
-                />
-              </View>
-              
-              <Text style={styles.timeSeparator}>to</Text>
-              
-              <View style={styles.timeInputGroup}>
-                <Text style={styles.timeLabel}>End Time</Text>
-                <TextInput
-                  style={styles.timeInput}
-                  placeholder="HH:MM"
-                  value={newSlotEndTime}
-                  onChangeText={setNewSlotEndTime}
-                  maxLength={5}
-                />
               </View>
             </View>
-            
-            <Text style={styles.timeHint}>Use 24-hour format (e.g., 09:00, 14:30)</Text>
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => {
-                  setShowAddSlotModal(false);
-                  setNewSlotStartTime('');
-                  setNewSlotEndTime('');
-                }}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.addButton]}
-                onPress={addSlot}
-              >
-                <Text style={styles.addButtonText}>Add Slot</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+          </Modal>
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -847,15 +837,5 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontWeight: 'bold'
-  },
-scrollContainer: {
-  flex: 1,
-},
-fixedButtonContainer: {
-  position: 'absolute',
-  bottom: 20,
-  left: 20,
-  right: 20,
-  backgroundColor: 'transparent',
-},
+  }
 });
